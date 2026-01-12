@@ -60,6 +60,10 @@ npm run deploy
 
 The site is published at: `https://<your-github-username>.github.io/e-plantShopping` (example: https://1DeliDolu.github.io/e-plantShopping).
 
+### Optional: use a local background image
+
+If you'd like the landing page to use a local image instead of the remote placeholder, place your image at `public/assets/greenhouse.jpg`. Vite serves files in `public/` at the site root, so the CSS references `/assets/greenhouse.jpg`. The CSS already falls back to the remote image if the local file is not present.
+
 ## Project files required for grading
 
 Provide the public GitHub URLs for the following files when submitting:
