@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { removeItem, updateQuantity } from './CartSlice';
+import { removeItem, updateQuantity, clearCart } from './CartSlice';
 import './CartItem.css';
 
 const CartItem = ({ onContinueShopping }) => {
   const cart = useSelector(state => state.cart.items);
   const dispatch = useDispatch();
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderId, setOrderId] = useState(null);
 
   // Calculate total amount for all products in the cart
   const calculateTotalAmount = () => {
@@ -47,12 +54,44 @@ const CartItem = ({ onContinueShopping }) => {
   };
 
   const handleCheckoutShopping = (e) => {
-    alert('Functionality to be added for future reference');
+    setShowCheckout(true);
+  };
+
+  const handleProceedToPayment = () => {
+    // basic validation
+    if (!customerName || !customerEmail) {
+      alert('Please enter name and email to continue.');
+      return;
+    }
+    setShowPayment(true);
+  };
+
+  const handleMockPay = () => {
+    // very simple card validation
+    const cleaned = (cardNumber || '').replace(/\s+/g, '');
+    if (cleaned.length < 12) {
+      alert('Enter a valid mock card number (12+ digits)');
+      return;
+    }
+    // mock successful payment
+    const id = 'ORD-' + Date.now();
+    setOrderId(id);
+    setOrderPlaced(true);
+    // clear cart
+    dispatch(clearCart());
+    // hide checkout/payment UI
+    setShowPayment(false);
+    setShowCheckout(false);
   };
 
   return (
     <div className="cart-container">
       <h2 style={{ color: 'black' }}>Total Cart Amount: ${calculateTotalAmount()}</h2>
+      {orderPlaced && (
+        <div style={{ padding: '12px', background: '#e6ffed', border: '1px solid #a5f3b1', marginBottom: '12px' }}>
+          <strong>Order placed:</strong> {orderId}. A confirmation has been sent to {customerEmail}.
+        </div>
+      )}
       <div>
         {cart.map(item => (
           <div className="cart-item" key={item.name}>
@@ -77,6 +116,46 @@ const CartItem = ({ onContinueShopping }) => {
         <br />
         <button className="get-started-button1" onClick={(e) => handleCheckoutShopping(e)}>Checkout</button>
       </div>
+
+      {/* Checkout UI: step 1 = order form, step 2 = mock payment */}
+      {showCheckout && !orderPlaced && (
+        <div className="checkout-overlay">
+          <div className="checkout-modal">
+            <h3>Checkout — Order Details</h3>
+            <div style={{ marginBottom: '8px' }}>
+              <label>Name</label>
+              <input value={customerName} onChange={e => setCustomerName(e.target.value)} />
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <label>Email</label>
+              <input value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} />
+            </div>
+            <div style={{ marginBottom: '8px' }}>
+              <div><strong>Order total:</strong> ${calculateTotalAmount()}</div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={handleProceedToPayment}>Proceed to Payment</button>
+              <button onClick={() => setShowCheckout(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPayment && !orderPlaced && (
+        <div className="checkout-overlay">
+          <div className="checkout-modal">
+            <h3>Mock Payment</h3>
+            <div style={{ marginBottom: '8px' }}>
+              <label>Card Number</label>
+              <input value={cardNumber} onChange={e => setCardNumber(e.target.value)} placeholder="4111 1111 1111" />
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={handleMockPay}>Pay ${calculateTotalAmount()}</button>
+              <button onClick={() => setShowPayment(false)}>Back</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
